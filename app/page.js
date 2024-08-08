@@ -23,7 +23,7 @@ export default function Home() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `Hi! I'm the AI Personal Learning Assistant, how can I assist you today?`
+      content: `Hi! I'm your Personal Development Coach, how can I assist you today?`
     }
   ]);
 
@@ -107,7 +107,7 @@ export default function Home() {
           spacing={3}
         >
           <Typography variant="h4" align="center" color="primary">
-            AI Learning Assistant
+            Personal Development AI Coach
           </Typography>
           <Stack
             direction="column"
