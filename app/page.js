@@ -30,42 +30,50 @@ export default function Home() {
   const [message, setMessage] = useState(``);
 
   const sendMessage = async () => {
-    if (message.trim() === '') return; // Prevent sending empty messages
+    if (message.trim() === '') return;
     setMessage('');
     setMessages((messages) => [
       ...messages,
       { role: "user", content: message },
-      { role: "assistant", content: `` },
+      { role: "assistant", content: `...` }, // Placeholder for AI response
     ]);
-    const response = await fetch('/api/chat', {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify([...messages, { role: 'user', content: message }])
-    });
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
 
-    let result = '';
-    return reader.read().then(function processText({ done, value }) {
-      if (done) {
-        return result;
-      }
-      const text = decoder.decode(value || new Int8Array(), { stream: true });
-      setMessages((messages) => {
-        let lastMessage = messages[messages.length - 1];
-        let otherMessages = messages.slice(0, messages.length - 1);
-        return [
-          ...otherMessages,
-          {
-            ...lastMessage,
-            content: lastMessage.content + text
-          },
-        ];
+    try {
+      const response = await fetch('/api/chat', {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify([...messages, { role: 'user', content: message }])
       });
-      return reader.read().then(processText);
-    });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      let result = '';
+      const read = async () => {
+        const { done, value } = await reader.read();
+        if (done) return result;
+        result += decoder.decode(value, { stream: true });
+        setMessages((messages) => {
+          const lastMessage = messages[messages.length - 1];
+          const otherMessages = messages.slice(0, messages.length - 1);
+          return [
+            ...otherMessages,
+            {
+              ...lastMessage,
+              content: result
+            },
+          ];
+        });
+        return read();
+      };
+
+      await read();
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   const handleKeyDown = (event) => {
@@ -85,7 +93,7 @@ export default function Home() {
         justifyContent="center"
         alignItems="center"
         sx={{
-          backgroundImage: 'url(/img/background-img.jpg)', // Ensure the image is in the public/img directory
+          backgroundImage: 'url(/img/background-img.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -117,7 +125,7 @@ export default function Home() {
                 display='flex'
                 justifyContent={message.role === 'assistant' ? 'flex-start' : 'flex-end'}
                 alignItems="center"
-                mb={2} // Add some bottom margin for spacing between messages
+                mb={2}
               >
                 {message.role === 'assistant' && <Avatar sx={{ bgcolor: teal[500], mr: 2 }}>AI</Avatar>}
                 {message.role === 'user' && <Avatar sx={{ bgcolor: deepPurple[500], ml: 2 }}>U</Avatar>}
@@ -131,9 +139,9 @@ export default function Home() {
                   borderRadius={2}
                   p={2}
                   boxShadow={1}
-                  maxWidth="70%" // Ensure the message box doesn't take full width
-                  ml={message.role === 'user' ? 2 : 0} // Add left margin for user messages
-                  mr={message.role === 'assistant' ? 2 : 0} // Add right margin for assistant messages
+                  maxWidth="70%"
+                  ml={message.role === 'user' ? 2 : 0}
+                  mr={message.role === 'assistant' ? 2 : 0}
                 >
                   {message.content}
                 </Box>
@@ -147,7 +155,7 @@ export default function Home() {
               fullWidth
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown} // Add the event listener here
+              onKeyDown={handleKeyDown}
             />
             <Button variant="contained" color="primary" onClick={sendMessage} endIcon={<SendIcon />}>
               Send

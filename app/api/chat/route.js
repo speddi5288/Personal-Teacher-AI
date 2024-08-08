@@ -13,39 +13,45 @@ const systemPrompt = `You are an AI-powered personal assistant designed to help 
 8. Your goal is to provide accurate information, assist with common inquiries, support effective learning, and ensure a positive and productive experience for all students.`;
 
 export async function POST(req) {
-  const openai = new OpenAI();
-  const data = await req.json();
+  try {
+    const openai = new OpenAI(process.env.OPENAI_API_KEY);
+    const data = await req.json();
 
-  const completion = await openai.chat.completions.create({
-    messages: [
-      {
-        role: 'system',
-        content: systemPrompt,
-      },
-      ...data,
-    ],
-    model: 'gpt-4o-mini',
-    stream: true,
-  });
+    const completion = await openai.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt,
+        },
+        ...data,
+      ],
+      model: 'gpt-4o-mini',
+      stream: true,
+    });
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      const encoder = new TextEncoder();
-      try {
-        for await (const chunk of completion) {
-          const content  = chunk.choices[0]?.delta?.content;
-          if (content) {
-            const text = encoder.encode(content);
-            controller.enqueue(text);
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        try {
+          for await (const chunk of completion) {
+            const content = chunk.choices[0]?.delta?.content;
+            if (content) {
+              const text = encoder.encode(content);
+              controller.enqueue(text);
+            }
           }
+        } catch (err) {
+          console.error("Stream error:", err);
+          controller.error(err);
+        } finally {
+          controller.close();
         }
-      } catch(err) {
-        controller.error(err);
-      } finally {
-        controller.close();
       }
-    }
-  });
-  
-  return new NextResponse(stream);
+    });
+
+    return new NextResponse(stream);
+  } catch (error) {
+    console.error("API Error:", error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }
