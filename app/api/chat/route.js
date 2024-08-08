@@ -14,10 +14,10 @@ const systemPrompt = `You are an AI-powered personal assistant designed to help 
 
 export async function POST(req) {
   try {
-    const openai = new OpenAI(process.env.OPENAI_API_KEY);
+    const openai = new OpenAI(process.env.OPENAI_API_KEY); // Use the environment variable
     const data = await req.json();
 
-    console.log('Request data:', data); // Log incoming request data for debugging
+    console.log('Request data:', data); // Log the incoming request data for debugging
 
     const completion = await openai.chat.completions.create({
       messages: [
