@@ -1,3 +1,40 @@
 {
-    "framework": "nextjs"
+    "version": 2,
+    "builds": [
+      {
+        "src": "next.config.js",
+        "use": "@vercel/next"
+      },
+      {
+        "src": "pages/api/**/*.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/api/(.*)",
+        "dest": "/api/$1"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "/$1"
+      }
+    ],
+    "framework": "nextjs",
+    "functions": {
+      "api/**/*.js": {
+        "memory": 1024,
+        "maxDuration": 10
+      }
+    },
+    "env": {
+      "OPENAI_API_KEY": "@openai_api_key"
+    },
+    "buildCommand": "next build",
+    "devCommand": "next dev",
+    "installCommand": "npm install",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "public": false
   }
+  
