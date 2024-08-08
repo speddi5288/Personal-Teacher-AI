@@ -14,9 +14,11 @@ const systemPrompt = `You are an AI-powered personal assistant designed to help 
 
 export async function POST(req) {
   try {
+    // Ensure that the OpenAI API key is available
     const openai = new OpenAI(process.env.OPENAI_API_KEY);
-    const data = await req.json();
+    const data = await req.json(); // Parse the incoming request body
 
+    // Create a completion using the OpenAI API
     const completion = await openai.chat.completions.create({
       messages: [
         {
@@ -25,7 +27,7 @@ export async function POST(req) {
         },
         ...data,
       ],
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o-mini', // Ensure this model is correct and available
       stream: true,
     });
 
@@ -37,11 +39,11 @@ export async function POST(req) {
             const content = chunk.choices[0]?.delta?.content;
             if (content) {
               const text = encoder.encode(content);
-              controller.enqueue(text);
+              controller.enqueue(text); // Stream content to client
             }
           }
         } catch (err) {
-          console.error("Stream error:", err);
+          console.error("Stream error:", err); // Log stream errors
           controller.error(err);
         } finally {
           controller.close();
@@ -51,7 +53,7 @@ export async function POST(req) {
 
     return new NextResponse(stream);
   } catch (error) {
-    console.error("API Error:", error);
+    console.error("API Error:", error); // Log API errors
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
