@@ -14,20 +14,17 @@ const systemPrompt = `You are an AI-powered personal assistant designed to help 
 
 export async function POST(req) {
   try {
-    // Ensure that the OpenAI API key is available
     const openai = new OpenAI(process.env.OPENAI_API_KEY);
-    const data = await req.json(); // Parse the incoming request body
+    const data = await req.json();
 
-    // Create a completion using the OpenAI API
+    console.log('Request data:', data); // Log incoming request data for debugging
+
     const completion = await openai.chat.completions.create({
       messages: [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
+        { role: 'system', content: systemPrompt },
         ...data,
       ],
-      model: 'gpt-4o-mini', // Ensure this model is correct and available
+      model: 'gpt-4', // Ensure the model name is correct
       stream: true,
     });
 
@@ -39,11 +36,11 @@ export async function POST(req) {
             const content = chunk.choices[0]?.delta?.content;
             if (content) {
               const text = encoder.encode(content);
-              controller.enqueue(text); // Stream content to client
+              controller.enqueue(text);
             }
           }
         } catch (err) {
-          console.error("Stream error:", err); // Log stream errors
+          console.error("Stream error:", err);
           controller.error(err);
         } finally {
           controller.close();

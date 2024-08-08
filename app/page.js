@@ -37,17 +37,20 @@ export default function Home() {
       { role: "user", content: message },
       { role: "assistant", content: `` },
     ]);
+
     try {
       const response = await fetch('/api/chat', {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify([...messages, { role: 'user', content: message }]) // Send the messages array to the backend
+        body: JSON.stringify([...messages, { role: 'user', content: message }])
       });
+
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error(`HTTP status ${response.status}`);
       }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
@@ -72,6 +75,7 @@ export default function Home() {
       });
     } catch (error) {
       console.error('Error sending message:', error); // Log the error
+      alert('A server or network error occurred during the request!');
     }
   };
 
