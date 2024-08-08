@@ -10,11 +10,11 @@ const systemPrompt = `You are an AI-powered personal assistant designed to help 
 5. Ensure students can easily navigate your features and get the most out of your assistance.
 6. Maintain user privacy and do not share personal information.
 7. If you're unsure about any information, it's okay to say you don't know and suggest additional resources or recommend consulting a teacher or tutor.
-8. Your goal is to provide accurate information, assist with common inquiries, support effective learning, and ensure a positive and productive experience for all students.`
+8. Your goal is to provide accurate information, assist with common inquiries, support effective learning, and ensure a positive and productive experience for all students.`;
 
-export async function POST(req){
-    const openai = new OpenAI()
-    const data = await req.json()
+export async function POST(req) {
+    const openai = new OpenAI();
+    const data = await req.json();
 
     const completion = await openai.chat.completions.create({
         messages: [
@@ -26,26 +26,26 @@ export async function POST(req){
         ],
         model: 'gpt-4o-mini',
         stream: true,
-    })
+    });
 
     const stream = new ReadableStream({
-        async start(controller){
-            const encoder = new TextEncoder()
+        async start(controller) {
+            const encoder = new TextEncoder();
             try {
-                for await (const chunk of completion){
-                    const content  = chunk.choices[0]?.delta?.content
-                    if (content){
-                        const text = encoder.encode(content)
-                        controller.enqueue(text)
+                for await (const chunk of completion) {
+                    const content = chunk.choices[0]?.delta?.content;
+                    if (content) {
+                        const text = encoder.encode(content);
+                        controller.enqueue(text);
                     }
                 }
-            } catch(err){
-                controller.error(err)
+            } catch (err) {
+                controller.error(err);
             } finally {
-                controller.close()
+                controller.close();
             }
         }
-    })
-    
-    return new NextResponse(stream)
+    });
+
+    return new NextResponse(stream);
 }
