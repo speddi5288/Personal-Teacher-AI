@@ -24,7 +24,7 @@ export async function POST(req) {
         { role: 'system', content: systemPrompt },
         ...data,
       ],
-      model: 'gpt-4',
+      model: 'gpt-4o-mini',
       stream: true,
     });
 
